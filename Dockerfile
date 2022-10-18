@@ -10,4 +10,4 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
 
-CMD ["python3", "generate_and_evaluate.py"]
+CMD ["python3", "generator.py"]

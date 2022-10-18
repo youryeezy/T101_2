@@ -1,41 +1,32 @@
+import numpy
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
 
 
-# generates x and y numpy arrays for
-# y = a*x + b + a * noise
-# in range -1 .. 1
-# with random noise of given amplitude (noise)
-# vizualizes it and unloads to csv
-def generate_linear(a, b, noise, filename, size=100):
+def generate_linear(a, b, noise, filename, size=100):  # generate x,y for linear
     print('Generating random data y = a*x + b')
     x = 2 * np.random.rand(size, 1) - 1
     y = a * x + b + noise * a * (np.random.rand(size, 1) - 0.5)
     data = np.hstack((x, y))
     np.savetxt(filename, data, delimiter=',')
-    return (x, y)
+    return x, y
 
 
-# thats an example of linear regression using polyfit
-def linear_regression_numpy(filename):
-    # now let's read it back
+def linear_regression_numpy(filename):  # linear regression with polyfit
     with open(filename, 'r') as f:
         data = np.loadtxt(f, delimiter=',')
-    # split to initial arrays
     x, y = np.hsplit(data, 2)
-    # printing shapes is useful for debugging
     print(np.shape(x))
     print(np.shape(y))
-    # our model
+
     time_start = time()
     model = np.polyfit(np.transpose(x)[0], np.transpose(y)[0], 1)
     time_end = time()
     print(f"polyfit in {time_end - time_start} seconds")
-    # our hypothesis for give x
+
     h = model[0] * x + model[1]
 
-    # and check if it's ok
     plt.title("Linear regression task")
     plt.xlabel("X")
     plt.ylabel("Y")
@@ -43,34 +34,48 @@ def linear_regression_numpy(filename):
     plt.plot(x, h, "r", label='model')
     plt.legend()
     plt.show()
-    return (model)
+    return model
 
 
-def linear_regression_exact(filename):
-    print("Ex1: your code here - exact solution usin invert matrix")
-    return
+def linear_regression_exact(filename):  # custom linear regression
+    with open(filename, 'r') as f:
+        data = np.loadtxt(f, delimiter=',')
+    x, y = np.hsplit(data, 2)
+    time_start = time()
+    tmp_x = np.hstack([np.ones((100, 1)), x])
+    trans_x = np.transpose(tmp_x)
+    res_theta = np.linalg.matrix_power(trans_x.dot(tmp_x), -1).dot(trans_x).dot(y)
+    print(res_theta)
+    print(np.shape(x))
+    print(np.shape(y))
+
+    time_end = time()
+
+    h = res_theta[1] * x + res_theta[0]
+    print(f"Linear regression time:{time_end - time_start}")
+    plt.title("Linear regression task")
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.plot(x, y, "b.", label='experiment')
+    plt.plot(x, h, "r", label='model')
+    plt.legend()
+    plt.show()
+    return res_theta
 
 
-def check(model, ground_truth):
-    if len(model) != len(ground_truth):
+def check(modl, ground_truth):
+    if len(modl) != len(ground_truth):
         print("Model is inconsistent")
         return False
     else:
-        r = np.dot(model - ground_truth, model - ground_truth) / (np.dot(ground_truth, ground_truth))
+        r = np.dot(modl - ground_truth, modl - ground_truth) / (np.dot(ground_truth, ground_truth))
         print(r)
-        if r < 0.0001:
+        if r < 0.001:
             return True
         else:
             return False
 
 
-# Ex1: make the same with polynoms
-
-# generates x and y numpy arrays for
-# y = a_n*X^n + ... + a2*x^2 + a1*x + a0 + noise
-# in range -1 .. 1
-# with random noise of given amplitude (noise)
-# vizualizes it and unloads to csv
 def generate_poly(a, n, noise, filename, size=100):
     x = 2 * np.random.rand(size, 1) - 1
     y = np.zeros((size, 1))
@@ -87,14 +92,30 @@ def generate_poly(a, n, noise, filename, size=100):
 
 
 def polynomial_regression_numpy(filename):
-    print("Ex2: your code here")
+    with open(filename, 'r') as f:
+        data = np.loadtxt(f, delimiter=',')
+    x, y = np.hsplit(data, 2)
+    print(np.shape(x))
+    print(np.shape(y))
     time_start = time()
-    print("Ex2: your code here")
+    model = np.polyfit(np.transpose(x)[0], np.transpose(y)[0], 2)
     time_end = time()
-    print(f"polyfit in {time_end - time_start} seconds")
+    print(f"Polinomial regression with polyfit in {time_end - time_start} seconds")
+    plt.title("Linear regression task")
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.plot(x, y, "b.", label='experiment')
+    x = np.sort(x, axis=0)
+    h = model[0] * x * x + model[1] * x + model[2]
+
+    plt.plot(x, h, "r", label='model')
+
+    plt.legend()
+    plt.show()
+    return model
 
 
-# Ex.3 gradient descent for linear regression without regularization
+# Ex.2 gradient descent for linear regression without regularization
 
 # find minimum of function J(theta) using gradient descent
 # alpha - speed of descend
@@ -106,28 +127,28 @@ def polynomial_regression_numpy(filename):
 def gradient_descent_step(dJ, theta, alpha):
     print("your code goes here")
 
-    return (theta_new)
+    return (theta)
 
 
 # get gradient over all xy dataset - gradient descent
 def get_dJ(x, y, theta):
-    d_theta = theta
+    theta_new = theta
     print("your code goes here - calculate new theta")
-    return d_theta
+    return theta_new
 
 
 # get gradient over all minibatch of size M of xy dataset - minibatch gradient descent
 def get_dJ_minibatch(x, y, theta, M):
-    d_theta = theta
+    theta_new = theta
     print("your code goes here - calculate new theta")
-    return d_theta
+    return theta_new
 
 
 # get gradient over all minibatch of single sample from xy dataset - stochastic gradient descent
 def get_dJ_sgd(x, y, theta):
-    d_theta = theta
+    theta_new = theta
     print("your code goes here - calculate new theta")
-    return d_theta
+    return theta_new
 
 
 # try each of gradient decsent (complete, minibatch, sgd) for varius alphas
@@ -148,15 +169,19 @@ def minimize(theta, x, y, L):
 
 if __name__ == "__main__":
     generate_linear(1, -3, 1, 'linear.csv', 100)
-    model = linear_regression_numpy("linear.csv")
-    print(f"Is model correct?\n{check(model, np.array([1, -3]))}")
+    model = np.squeeze(linear_regression_exact("linear.csv"))
+    poly_model = polynomial_regression_numpy("polynomial.csv")
+    # print(f"Is model correct?\n{check(model, np.array([1,-3]))}")
+    mod1 = np.squeeze(numpy.asarray(np.array(([-3], [1]))))
+    print(f"Is model correct?\n{check(model, mod1)}")
+
     # ex1 . - exact solution
     # model_exact = linear_regression_exact("linear.csv")
     # check(model_exact, np.array([-3,1]))
 
     # ex1. polynomial with numpy
     generate_poly([1, 2, 3], 2, 0.5, 'polynomial.csv')
-    polynomial_regression_numpy("polynomial.csv")
+    # polynomial_regression_numpy("polynomial.csv")
 
     # ex2. find minimum with gradient descent
     # 0. generate date with function above
