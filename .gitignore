@@ -1,5 +1,4 @@
-linear.csv
-polynomial.csv
+*.csv
 original.py
 # Byte-compiled / optimized / DLL files
 __pycache__/

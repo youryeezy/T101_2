@@ -12,6 +12,27 @@ def generate_linear(a, b, noise, filename, size=100):  # generate x,y for linear
     return x, y
 
 
+def shuffle(filename):
+    with open(filename, 'r') as f:
+        data = np.loadtxt(f, delimiter=',')
+    x, y = np.hsplit(data, 2)
+
+    x_stud = x[0:70]
+    y_stud = x[0:70]
+    data = np.hstack((x_stud, y_stud))
+    np.savetxt('stud.cvs', data, delimiter=',')
+
+    x_test = x[70:85]
+    y_test = x[70:85]
+    data = np.hstack((x_test, y_test))
+    np.savetxt('test.cvs', data, delimiter=',')
+
+    x_valid = x[85:100]
+    y_valid = x[85:100]
+    data = np.hstack((x_valid, y_valid))
+    np.savetxt('valid.cvs', data, delimiter=',')
+
+
 def linear_regression_numpy(filename):  # linear regression with polyfit
     with open(filename, 'r') as f:
         data = np.loadtxt(f, delimiter=',')
@@ -38,6 +59,7 @@ def linear_regression_exact(filename):  # custom linear regression
     with open(filename, 'r') as f:
         data = np.loadtxt(f, delimiter=',')
     x, y = np.hsplit(data, 2)
+    print(type(x))
     time_start = time()
     tmp_x = np.hstack([np.ones((100, 1)), x])
     trans_x = np.transpose(tmp_x)
@@ -120,14 +142,15 @@ def gradient_descent_step(dJ, theta, alpha):
 
 
 # get gradient over all xy dataset - gradient descent
-# get gradient over all xy dataset - gradient descent
 def get_dJ(x, y, theta):
     alf = 0.001
     h = theta[1] * x + theta[0]
+    buf = h - y
+    for i in range(100):
+        buf[i] *= x[i]
     theta_new = theta
     for tet in theta_new:
-        tet = tet - alf * np.sum((h - y) * x)  # частная производная
-
+        tet = tet - alf * np.sum(buf)  # тета - альфа * частная производная
     print('theta_new = ', theta_new)
     return theta_new
 
@@ -155,19 +178,24 @@ def minimize(theta, x, y, L):
     dJ = np.zeros(n)
     for i in range(0, L):
         theta = get_dJ(x, y, theta)  # here you should try different gradient descents
-        J = 0  # here you should calculate it properly
+
+    h = theta[1] * x + theta[0]
+    buf = h - y
+    for i in range(100):
+        buf[i] *= buf[i]
+    J = np.sum(buf) / 2
 
     plt.title("Minimize task")
     plt.xlabel("X")
     plt.ylabel("Y")
-    plt.plot(x, y, "b.", label='experiment')
-    plt.plot(x, h, "r", label='model')
+    plt.plot(theta, J, "b.")
     plt.legend()
     plt.show()
     return
 
 
 if __name__ == "__main__":
+    # ex1. exact solution, polynomial with numpy
     generate_linear(1, -3, 1, 'linear.csv', 100)
     model = np.squeeze(linear_regression_exact("linear.csv"))
     mod1 = np.squeeze(numpy.asarray(np.array(([-3], [1]))))
@@ -178,6 +206,8 @@ if __name__ == "__main__":
     poly_model = polynomial_regression_numpy("polynomial.csv")
 
     # ex2. find minimum with gradient descent
+    generate_linear(1, -3, 1, 'linear.csv', 100)
+    shuffle('linear.csv')
     # 0. generate date with function above
     # 1. shuffle data into train - test - valid
     # 2. call minuimize(...) and plot J(i)
