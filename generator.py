@@ -12,27 +12,6 @@ def generate_linear(a, b, noise, filename, size=100):  # generate x,y for linear
     return x, y
 
 
-def shuffle(filename):
-    with open(filename, 'r') as f:
-        data = np.loadtxt(f, delimiter=',')
-    x, y = np.hsplit(data, 2)
-
-    x_stud = x[0:70]
-    y_stud = x[0:70]
-    data = np.hstack((x_stud, y_stud))
-    np.savetxt('stud.cvs', data, delimiter=',')
-
-    x_test = x[70:85]
-    y_test = x[70:85]
-    data = np.hstack((x_test, y_test))
-    np.savetxt('test.cvs', data, delimiter=',')
-
-    x_valid = x[85:100]
-    y_valid = x[85:100]
-    data = np.hstack((x_valid, y_valid))
-    np.savetxt('valid.cvs', data, delimiter=',')
-
-
 def linear_regression_numpy(filename):  # linear regression with polyfit
     with open(filename, 'r') as f:
         data = np.loadtxt(f, delimiter=',')
@@ -40,10 +19,11 @@ def linear_regression_numpy(filename):  # linear regression with polyfit
     print("shape of x and y are: ", np.shape(x), np.shape(y))
 
     time_start = time()
-    model = np.polyfit(np.transpose(x)[0], np.transpose(y)[0], 1)
+    modl = np.polyfit(np.transpose(x)[0], np.transpose(y)[0], 1)
+    print('modl - ', modl)
     time_end = time()
     print(f"polyfit in {time_end - time_start} seconds")
-    h = model[0] * x + model[1]
+    h = modl[0] * x + modl[1]
 
     plt.title("Linear regression task")
     plt.xlabel("X")
@@ -52,14 +32,13 @@ def linear_regression_numpy(filename):  # linear regression with polyfit
     plt.plot(x, h, "r", label='model')
     plt.legend()
     plt.show()
-    return model
+    return modl
 
 
 def linear_regression_exact(filename):  # custom linear regression
     with open(filename, 'r') as f:
         data = np.loadtxt(f, delimiter=',')
     x, y = np.hsplit(data, 2)
-    print(type(x))
     time_start = time()
     tmp_x = np.hstack([np.ones((100, 1)), x])
     trans_x = np.transpose(tmp_x)
@@ -144,13 +123,17 @@ def gradient_descent_step(dJ, theta, alpha):
 # get gradient over all xy dataset - gradient descent
 def get_dJ(x, y, theta):
     alf = 0.001
-    h = theta[1] * x + theta[0]
+
+    # tmp_x = np.hstack([np.ones((100, 1)), x])
+    trp_theta = np.transpose(theta)
+    h = trp_theta.dot(x)
     buf = h - y
-    for i in range(100):
+    for i in range(len(h)):
         buf[i] *= x[i]
     theta_new = theta
-    for tet in theta_new:
-        tet = tet - alf * np.sum(buf)  # тета - альфа * частная производная
+    buf_sum = np.sum(buf)
+    for i in range(len(x)):
+        theta_new[i] = theta_new[i] - alf * buf_sum  # тета - альфа * частная производная
     print('theta_new = ', theta_new)
     return theta_new
 
@@ -172,46 +155,76 @@ def get_dJ_sgd(x, y, theta):
 # try each of gradient decent (complete, minibatch, sgd) for varius alphas
 # L - number of iterations
 # plot results as J(i)
-def minimize(theta, x, y, L):
-    n = 100
-    theta = np.zeros(n)  # you can try random initialization
+def minimize(filename, L):
+    with open(filename, 'r') as f:
+        data = np.loadtxt(f, delimiter=',')
+    x, y = np.hsplit(data, 2)
+    print("Shape of x and y are: ", np.shape(x), np.shape(y))
+
+    n = 2
+    theta_stud = np.zeros(n)  # you can try random initialization
     dJ = np.zeros(n)
+
+    # theta_stud = np.polyfit(np.transpose(x)[0], np.transpose(y)[0], 1)
     for i in range(0, L):
-        theta = get_dJ(x, y, theta)  # here you should try different gradient descents
+        theta_stud = get_dJ(x, y, theta_stud)  # here you should try different gradient descents
 
-    h = theta[1] * x + theta[0]
-    buf = h - y
-    for i in range(100):
-        buf[i] *= buf[i]
-    J = np.sum(buf) / 2
-
+    h = theta_stud[1] * x + theta_stud[0]
+    J = 1
+    print(np.shape(J))
     plt.title("Minimize task")
     plt.xlabel("X")
     plt.ylabel("Y")
-    plt.plot(theta, J, "b.")
+    plt.plot(theta_stud, J, "b.")
     plt.legend()
     plt.show()
-    return
+    return theta_stud
+
+
+def shuffle(filename):
+    with open(filename, 'r') as f:
+        data = np.loadtxt(f, delimiter=',')
+    x, y = np.hsplit(data, 2)
+
+    x_stud = x[0:70]
+    y_stud = x[0:70]
+    data = np.hstack((x_stud, y_stud))
+    np.savetxt('stud.csv', data, delimiter=',')
+
+    x_test = x[70:85]
+    y_test = x[70:85]
+    data = np.hstack((x_test, y_test))
+    np.savetxt('test.csv', data, delimiter=',')
+
+    x_valid = x[85:100]
+    y_valid = x[85:100]
+    data = np.hstack((x_valid, y_valid))
+    np.savetxt('valid.csv', data, delimiter=',')
 
 
 if __name__ == "__main__":
-    # ex1. exact solution, polynomial with numpy
+    # ex1. exact solution
     generate_linear(1, -3, 1, 'linear.csv', 100)
     model = np.squeeze(linear_regression_exact("linear.csv"))
     mod1 = np.squeeze(numpy.asarray(np.array(([-3], [1]))))
     print(f"Is model correct? - {check(model, mod1)}")
     print("*" * 40)
 
+    # ex1. polynomial with numpy
     generate_poly([1, 2, 3], 2, 0.5, 'polynomial.csv')
     poly_model = polynomial_regression_numpy("polynomial.csv")
+    print("*" * 40)
 
     # ex2. find minimum with gradient descent
-    generate_linear(1, -3, 1, 'linear.csv', 100)
-    shuffle('linear.csv')
     # 0. generate date with function above
+    generate_linear(1, -3, 1, 'linear.csv', 100)
     # 1. shuffle data into train - test - valid
-    # 2. call minuimize(...) and plot J(i)
+    shuffle('linear.csv')
+    # 2. call minimize(...) and plot J(i)
+    theta = minimize('stud.csv', 10)
     # 3. call check(theta1, theta2) to check results for optimal theta
+    check(theta[0], theta[1])
+    print("*" * 40)
 
     # ex3. polinomial regression
     # 0. generate date with function generate_poly for degree=3, use size = 10, 20, 30, ... 100
