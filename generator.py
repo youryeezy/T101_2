@@ -100,9 +100,7 @@ def polynomial_regression_numpy(filename):
     plt.plot(x, y, "b.", label='experiment')
     x = np.sort(x, axis=0)
     h = modl[0] * x * x + modl[1] * x + modl[2]
-
     plt.plot(x, h, "r", label='modl')
-
     plt.legend()
     plt.show()
     return modl
@@ -167,13 +165,20 @@ def get_dJ_sgd(x, y, theta, alpha):
 
 
 def minimize(x, y, L):
-    alpha = 0.04
-    theta_count = np.zeros(2)
+    alpha = 0.5
+    # theta_count = np.zeros(2)
+    first = random.randint(1, 100)/10
+    second = random.randint(1, 100)/10
+    theta_count = np.array([first, second]).reshape((1, 2))
+
     itr = [None] * L
     J_mass = [None] * L
-    for i in range(0, L):
+    for i in range(L):
         dJ = get_dJ(x, y, theta_count)  # here you should try different gradient descents
+        print(alpha*dJ)
         theta_count = theta_count - alpha * dJ
+        # theta_count = gradient_descent_step(dJ, theta_count, alpha)
+        # print('new theta = ', theta_count)
         h = np.dot(theta_count, x.transpose())
         J_mass[i] = 0.5 / len(y) * np.square(h - y.transpose()).sum(axis=1)
         itr[i] = i
@@ -191,18 +196,18 @@ def shuffle(filename):
         database = np.loadtxt(f, delimiter=',')
     x, y = np.hsplit(database, 2)
 
-    x_stud = x[0:80]
-    y_stud = x[0:80]
+    x_stud = x[0:60]
+    y_stud = x[0:60]
     database = np.hstack((x_stud, y_stud))
     np.savetxt('stud.csv', database, delimiter=',')
 
-    x_test = x[80:90]
-    y_test = x[80:90]
+    x_test = x[60:80]
+    y_test = x[60:80]
     database = np.hstack((x_test, y_test))
     np.savetxt('test.csv', database, delimiter=',')
 
-    x_valid = x[90:100]
-    y_valid = x[90:100]
+    x_valid = x[80:100]
+    y_valid = x[80:100]
     database = np.hstack((x_valid, y_valid))
     np.savetxt('valid.csv', database, delimiter=',')
 
@@ -229,16 +234,12 @@ if __name__ == "__main__":
     with open('stud.csv', 'r') as f:
         data = np.loadtxt(f, delimiter=',')
     x, y = np.hsplit(data, 2)
-    x = np.hstack([np.ones((80, 1)), x])
-    theta = minimize(x, y, 200)
+    x = np.hstack([np.ones((60, 1)), x])
+    theta = np.squeeze(minimize(x, y, 25))
     # 3. call check(theta1, theta2) to check results for optimal theta
     # modl = np.polyfit(np.transpose(x)[0], np.transpose(y)[0], 1)
-
-    theta1 = theta
-    theta1[0][0] = 0
-    theta1[0][1] = 0
     print(theta)
-    print(f"Is model correct? - {check(theta, theta1)}")
+    print(f"Is model correct? - {check(theta, mod1)}")
     print("*" * 40)
 
     # ex3. polynomial regression
