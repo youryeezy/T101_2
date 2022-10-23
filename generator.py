@@ -67,7 +67,7 @@ def check(modl, ground_truth):
     else:
         r = np.dot(modl - ground_truth, modl - ground_truth) / (np.dot(ground_truth, ground_truth))
         print("Result of check: ", r)
-        if r < 0.001:
+        if r < 0.005:
             return True
         else:
             return False
@@ -116,15 +116,15 @@ def polynomial_regression_numpy(filename):
 # x and y are both vectors
 
 def gradient_descent_step(dJ, theta, alpha):
-    theta = theta - alpha * dJ
-    return theta
+    new_tet = theta - alpha * dJ
+    return new_tet
 
 
 # get gradient over all xy dataset - gradient descent
 def get_dJ(x, y, theta):
     x_trp = x.transpose()
     y_trp = y.transpose()
-    h = np.dot(theta, x_trp)
+    h = theta.dot(x_trp)
     dJ = 1 / len(y) * (h - y_trp).dot(x)
     return dJ
 
@@ -165,7 +165,8 @@ def get_dJ_sgd(x, y, theta, alpha):
 
 
 def minimize(x, y, L):
-    alpha = 0.5
+    alpha = 0.15
+    #random.shuffle(x)
     # theta_count = np.zeros(2)
     first = random.randint(1, 100)/10
     second = random.randint(1, 100)/10
@@ -175,9 +176,9 @@ def minimize(x, y, L):
     J_mass = [None] * L
     for i in range(L):
         dJ = get_dJ(x, y, theta_count)  # here you should try different gradient descents
-        print(alpha*dJ)
-        theta_count = theta_count - alpha * dJ
-        # theta_count = gradient_descent_step(dJ, theta_count, alpha)
+        # theta_count = theta_count - alpha * dJ
+        theta_count = gradient_descent_step(dJ, theta_count, alpha)
+        alpha += 0.0002
         # print('new theta = ', theta_count)
         h = np.dot(theta_count, x.transpose())
         J_mass[i] = 0.5 / len(y) * np.square(h - y.transpose()).sum(axis=1)
@@ -186,7 +187,7 @@ def minimize(x, y, L):
     plt.title("Minimize task")
     plt.xlabel("iteration")
     plt.ylabel("Loss func")
-    plt.plot(itr, J_mass, "b.")
+    plt.plot(itr, J_mass, "g.")
     plt.show()
     return theta_count
 
@@ -229,16 +230,17 @@ if __name__ == "__main__":
     # 0. generate date with function above
     generate_linear(1, -3, 1, 'linear.csv', 100)
     # 1. shuffle data into train - test - valid
-    shuffle('linear.csv')
+    #shuffle('linear.csv')
     # 2. call minimize(...) and plot J(i)
-    with open('stud.csv', 'r') as f:
+    with open('linear.csv', 'r') as f:
         data = np.loadtxt(f, delimiter=',')
     x, y = np.hsplit(data, 2)
-    x = np.hstack([np.ones((60, 1)), x])
-    theta = np.squeeze(minimize(x, y, 25))
+    x = np.hstack([np.ones((100, 1)), x])
+    theta = np.squeeze(minimize(x, y, 100))
+    print(theta)
     # 3. call check(theta1, theta2) to check results for optimal theta
     # modl = np.polyfit(np.transpose(x)[0], np.transpose(y)[0], 1)
-    print(theta)
+
     print(f"Is model correct? - {check(theta, mod1)}")
     print("*" * 40)
 
